@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chromatic — AI Text with Color Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #141418;
+    --surface2: #1c1c22;
+    --border: #2a2a35;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --accent: #c8b4f8;
+    --accent2: #f8b4d4;
+
+    --h1: #ffd980;
+    --h2: #80d4ff;
+    --h3: #b4f8c8;
+    --h4: #f8c8b4;
+    --h5: #f8b4d4;
+    --h6: #c8b4f8;
+    --h7: #ffffc0;
+    --neutral: #c8c8d8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 28px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.7rem;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tagline {
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .key-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .key-area input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    width: 240px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .key-area input:focus { border-color: var(--accent); }
+  .key-area input::placeholder { color: var(--muted); }
+
+  .key-status {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .key-status.valid { background: #80f898; }
+  .key-status.invalid { background: #f87878; }
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .left-panel {
+    padding: 36px 40px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .panel-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  textarea {
+    flex: 1;
+    min-height: 180px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  .controls-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    cursor: pointer;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  .generate-btn {
+    padding: 11px 28px;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #0d0d0f;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .generate-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .generate-btn:active { transform: translateY(0); }
+  .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .right-panel {
+    padding: 36px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+
+  .output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .copy-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  #output-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 26px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.97rem;
+    line-height: 1.85;
+    min-height: 300px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .placeholder-text {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.9rem;
+  }
+
+  .spinner {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+  .spinner.active { display: flex; }
+
+  .spinner-dots span {
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .spinner-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .spinner-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  .error-msg {
+    color: #f87878;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+    background: rgba(248,120,120,0.08);
+    border-radius: 8px;
+    border: 1px solid rgba(248,120,120,0.2);
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  .hl-definition  { color: var(--h1); }
+  .hl-keyterm     { color: var(--h2); font-weight: 500; }
+  .hl-example     { color: var(--h3); }
+  .hl-transition  { color: var(--h4); }
+  .hl-caveat      { color: var(--h5); font-style: italic; }
+  .hl-conclusion  { color: var(--h6); font-weight: 500; }
+  .hl-statistic   { color: var(--h7); font-family: 'DM Mono', monospace; font-size: 0.92em; }
+  .hl-neutral     { color: var(--neutral); }
+
+  footer {
+    padding: 16px 40px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .model-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+  }
+
+  @media (max-width: 768px) {
+    main { grid-template-columns: 1fr; }
+    .left-panel { border-right: none; border-bottom: 1px solid var(--border); }
+    header { padding: 18px 20px; }
+    .left-panel, .right-panel { padding: 24px 20px; }
+    footer { padding: 12px 20px; }
+    .key-area input { width: 180px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Chromatic</div>
+    <div class="tagline">AI text · color intelligence</div>
+  </div>
+  <div class="key-area">
+    <div class="key-status" id="key-status"></div>
+    <input type="password" id="api-key" placeholder="sk-... (your OpenAI key)" oninput="onKeyChange()" />
+  </div>
+</header>
+
+<main>
+  <div class="left-panel">
+    <div class="panel-label">Your Prompt</div>
+
+    <textarea id="prompt" placeholder="e.g. Explain quantum entanglement in 3 paragraphs&#10;Write a short essay on why reading matters&#10;Summarize the French Revolution" rows="8"></textarea>
+
+    <div class="controls-row">
+      <select id="mode">
+        <option value="explain">📚 Explain / Teach</option>
+        <option value="essay">✍️ Essay / Argument</option>
+        <option value="summary">🗂️ Summarize</option>
+        <option value="creative">🎨 Creative Writing</option>
+        <option value="analyze">🔍 Analyze</option>
+      </select>
+      <button class="generate-btn" onclick="generate()" id="gen-btn">Generate →</button>
+    </div>
+
+    <div class="spinner" id="spinner">
+      <div class="spinner-dots"><span></span><span></span><span></span></div>
+      Generating…
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="panel-label" style="margin-top:4px">Color Key</div>
+    <div class="legend">
+      <div class="legend-item"><div class="dot" style="background:var(--h1)"></div>Definitions</div>
+      <div class="legend-item"><div class="dot" style="background:var(--h2)"></div>Key Terms</div>
+      <div class="legend-item"><div class="dot" style="background:var(--h3)"></div>Examples</div>
+      <div class="legend-item"><div class="dot" style="background:var(--h4)"></div>Transitions</div>
+      <div class="legend-item"><div class="dot" style="background:var(--h5)"></div>Caveats</div>
+      <div class="legend-item"><div class="dot" style="background:var(--h6)"></div>Conclusions</div>
+      <div class="legend-item"><div class="dot" style="background:var(--h7)"></div>Numbers / Stats</div>
+      <div class="legend-item"><div class="dot" style="background:var(--neutral)"></div>Plain sentences</div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="output-header">
+      <div class="panel-label">Highlighted Output</div>
+      <button class="copy-btn" onclick="copyText()">Copy plain text</button>
+    </div>
+    <div id="output-box">
+      <span class="placeholder-text">Your color-highlighted response will appear here…</span>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>Your API key is never stored — it stays in your browser tab only.</span>
+  <span class="model-badge">gpt-4o-mini</span>
+</footer>
+
+<script>
+function onKeyChange() {
+  const key = document.getElementById('api-key').value.trim();
+  const dot = document.getElementById('key-status');
+  if (key.startsWith('sk-') && key.length > 20) {
+    dot.className = 'key-status valid';
+  } else if (key.length > 0) {
+    dot.className = 'key-status invalid';
+  } else {
+    dot.className = 'key-status';
+  }
+}
+
+function getSystemPrompt(mode) {
+  const base = `You are a helpful assistant. When responding, you MUST wrap every sentence using these XML tags so I can color-highlight them:
+
+<def>...</def>           - definitions, explanations of what something IS
+<term>...</term>         - key terms / important words (wrap inline, inside other tags)
+<ex>...</ex>             - examples, analogies, illustrations
+<trans>...</trans>       - transition phrases, connective sentences
+<caveat>...</caveat>     - caveats, limitations, warnings, qualifications
+<conc>...</conc>         - concluding sentences, takeaways, summary points
+<stat>...</stat>         - numbers, statistics, percentages, measurements
+<n>...</n>               - plain neutral sentences that don't fit above
+
+Rules:
+- EVERY sentence must be wrapped in exactly one outer tag
+- You can nest <term> tags inside other tags for key words
+- No markdown formatting (no **, no ##) — only these XML tags
+- Write natural flowing paragraphs — just tagged
+- Do not add any explanation about the tags`;
+
+  const extras = {
+    explain: `\nMode: Educational explanation. Build understanding step by step.`,
+    essay: `\nMode: Essay / argument. Use claims, evidence, and strong conclusions.`,
+    summary: `\nMode: Concise summary. Extract the most important points.`,
+    creative: `\nMode: Creative writing. Tag descriptive passages as <ex>, emotional beats as <conc>.`,
+    analyze: `\nMode: Analysis. Break down components and draw insights.`,
+  };
+
+  return base + (extras[mode] || '');
+}
+
+function parseTaggedText(raw) {
+  // Escape all HTML
+  let s = raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '\x01')
+    .replace(/>/g, '\x02');
+
+  // Restore only our valid tags
+  const tags = ['def','term','ex','trans','caveat','conc','stat','n'];
+  tags.forEach(t => {
+    const re = new RegExp(`\x01(/?${t})\x02`, 'g');
+    s = s.replace(re, '<$1>');
+  });
+
+  // Map to highlighted spans
+  s = s
+    .replace(/<def>([\s\S]*?)<\/def>/g,      '<span class="hl-definition">$1</span>')
+    .replace(/<term>([\s\S]*?)<\/term>/g,    '<span class="hl-keyterm">$1</span>')
+    .replace(/<ex>([\s\S]*?)<\/ex>/g,        '<span class="hl-example">$1</span>')
+    .replace(/<trans>([\s\S]*?)<\/trans>/g,  '<span class="hl-transition">$1</span>')
+    .replace(/<caveat>([\s\S]*?)<\/caveat>/g,'<span class="hl-caveat">$1</span>')
+    .replace(/<conc>([\s\S]*?)<\/conc>/g,    '<span class="hl-conclusion">$1</span>')
+    .replace(/<stat>([\s\S]*?)<\/stat>/g,    '<span class="hl-statistic">$1</span>')
+    .replace(/<n>([\s\S]*?)<\/n>/g,          '<span class="hl-neutral">$1</span>');
+
+  // Clean leftover escapes
+  return s.replace(/\x01/g, '&lt;').replace(/\x02/g, '&gt;');
+}
+
+async function generate() {
+  const key    = document.getElementById('api-key').value.trim();
+  const prompt = document.getElementById('prompt').value.trim();
+  const mode   = document.getElementById('mode').value;
+  const output = document.getElementById('output-box');
+  const errEl  = document.getElementById('error-msg');
+  const spinner= document.getElementById('spinner');
+  const btn    = document.getElementById('gen-btn');
+
+  errEl.classList.remove('visible');
+
+  if (!key.startsWith('sk-') || key.length < 20) {
+    showError('Please enter a valid OpenAI API key (starts with sk-).');
+    return;
+  }
+  if (!prompt) {
+    showError('Please enter a prompt first.');
+    return;
+  }
+
+  btn.disabled = true;
+  spinner.classList.add('active');
+  output.innerHTML = '<span class="placeholder-text">Generating…</span>';
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: getSystemPrompt(mode) },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 1200,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const raw  = data.choices[0].message.content;
+    output.innerHTML = parseTaggedText(raw);
+
+  } catch (e) {
+    showError(e.message);
+    output.innerHTML = '<span class="placeholder-text">Generation failed. See error above.</span>';
+  } finally {
+    btn.disabled = false;
+    spinner.classList.remove('active');
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('visible');
+}
+
+function copyText() {
+  const plain = document.getElementById('output-box').innerText;
+  navigator.clipboard.writeText(plain).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy plain text', 1800);
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') generate();
+});
+</script>
+</body>
+</html>
